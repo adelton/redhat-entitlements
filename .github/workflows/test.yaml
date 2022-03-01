@@ -1,0 +1,15 @@
+name: Build RHEL container image
+on:
+  push:
+  workflow_dispatch:
+jobs:
+  build:
+    name: Build container image
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/podman-entitlement
+        with:
+          org: ${{ secrets.redhat_org }}
+          activationkey: ${{ secrets.redhat_activationkey }}
+      - run: podman run --rm registry.access.redhat.com/ubi8 dnf install -y zsh
