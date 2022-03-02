@@ -1,0 +1,19 @@
+name: 'Decrypt artifact after downloading it with actions/download-artifact@v2'
+inputs:
+  name:
+    description: 'Artifact name'
+    required: true
+  secret:
+    description: 'The secret to be used to encrypt'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/download-artifact@v2
+      with:
+        name: ${{ inputs.name }}
+    - run: |
+        echo "${{ inputs.secret }}" | openssl enc -d -pass stdin -aes-256-cbc -pbkdf2 -in "${{ inputs.name }}" -out "${{ inputs.name }}.dec.$$"
+        rm -f "${{ inputs.name }}"
+        mv -f "${{ inputs.name }}.dec.$$" "${{ inputs.name }}"
+      shell: bash

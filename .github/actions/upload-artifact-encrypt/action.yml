@@ -1,0 +1,23 @@
+name: 'Upload artifact using actions/upload-artifact@v2 after encrypting it'
+inputs:
+  name:
+    description: 'Artifact name'
+    default: 'artifact'
+  path:
+    description: 'A file (no directory or wildcard pattern) to upload'
+    required: true
+  secret:
+    description: 'The secret to be used to encrypt'
+    required: true
+runs:
+  using: 'composite'
+  steps:
+    - run: |
+        echo "${{ inputs.secret }}" | openssl enc -pass stdin -aes-256-cbc -pbkdf2 -in "${{ inputs.path }}" -out "${{ inputs.path }}.enc.$$"
+        rm -f "${{ inputs.path }}"
+        mv -f "${{ inputs.path }}.enc.$$" "${{ inputs.path }}"
+      shell: bash
+    - uses: actions/upload-artifact@v2
+      with:
+        name: ${{ inputs.name }}
+        path: ${{ inputs.path }}

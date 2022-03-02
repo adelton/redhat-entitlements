@@ -12,4 +12,20 @@ jobs:
         with:
           org: ${{ secrets.redhat_org }}
           activationkey: ${{ secrets.redhat_activationkey }}
-      - run: podman run --rm registry.access.redhat.com/ubi8 dnf install -y zsh
+      - run: podman run --rm registry.access.redhat.com/ubi8 dnf install -y zsh | tee podman-run.log
+      - uses: ./.github/actions/upload-artifact-encrypt
+        with:
+          name: podman-run.log
+          path: podman-run.log
+          secret: ${{ secrets.upload_secret }}
+  check:
+    name: Check the logs (that should have been encrypted)
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/download-artifact-decrypt
+        with:
+          name: podman-run.log
+          secret: ${{ secrets.upload_secret }}
+      - run: cat podman-run.log
