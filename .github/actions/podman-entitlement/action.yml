@@ -15,8 +15,9 @@ runs:
         NAME="${NAME#https://}"
         NAME="${NAME////-}"
         EDIR=/tmp/etc-pki-entitlement-${{ github.run_id }}
-        rm -rf "$EDIR"
-        mkdir -p "$EDIR"
-        podman run --name="$NAME" -v "$EDIR":/etc/pki/entitlement-out:z --rm "${{ inputs.image }}" bash -c '/usr/sbin/subscription-manager register --org="${{ inputs.org }}" --activationkey="${{ inputs.activationkey }}" --name="'$NAME'" && cp /etc/pki/entitlement/* /etc/pki/entitlement-out/ && /usr/sbin/subscription-manager unregister'
-        echo "$EDIR:/etc/pki/entitlement" | sudo tee /etc/containers/mounts.conf
+        CDIR=/tmp/rhsm--${{ github.run_id }}
+        rm -rf "$EDIR" "$CDIR"
+        mkdir -p "$EDIR" "$CDIR"
+        podman run --name="$NAME" -v "$EDIR":/etc/pki/entitlement-out:z -v "$CDIR":/etc/rhsm-out:z --rm "${{ inputs.image }}" bash -c '/usr/sbin/subscription-manager register --org="${{ inputs.org }}" --activationkey="${{ inputs.activationkey }}" --name="'$NAME'" && cp /etc/pki/entitlement/* /etc/pki/entitlement-out/ && cp -r /etc/rhsm/ca /etc/rhsm/rhsm.conf /etc/rhsm-out && /usr/sbin/subscription-manager unregister'
+        ( echo "$EDIR:/run/secrets/etc-pki-entitlement" ; echo "$CDIR:/run/secrets/rhsm" ) | sudo tee /etc/containers/mounts.conf
       shell: bash
