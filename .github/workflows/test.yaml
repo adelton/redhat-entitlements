@@ -12,7 +12,7 @@ jobs:
         with:
           org: ${{ secrets.redhat_org }}
           activationkey: ${{ secrets.redhat_activationkey }}
-      - run: podman run --rm registry.access.redhat.com/ubi8 dnf install -y zsh | tee podman-run.log
+      - run: set -o pipefail ; podman run --rm registry.access.redhat.com/ubi8 dnf install -y zsh | tee podman-run.log
       - uses: ./.github/actions/upload-artifact-encrypt
         with:
           name: podman-run.log
