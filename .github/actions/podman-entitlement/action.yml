@@ -6,7 +6,7 @@ inputs:
     description: 'Red Hat account activation key'
   image:
     description: 'Container image to use to run subscription-manager register'
-    default: 'registry.access.redhat.com/ubi8'
+    default: 'registry.access.redhat.com/ubi9'
 runs:
   using: 'composite'
   steps:
@@ -18,6 +18,6 @@ runs:
         CDIR=/tmp/rhsm--${{ github.run_id }}
         rm -rf "$EDIR" "$CDIR"
         mkdir -p "$EDIR" "$CDIR"
-        podman run --name="$NAME" -v "$EDIR":/etc/pki/entitlement-out:z -v "$CDIR":/etc/rhsm-out:z --rm "${{ inputs.image }}" bash -c '/usr/sbin/subscription-manager register --org="${{ inputs.org }}" --activationkey="${{ inputs.activationkey }}" --name="'$NAME'" && cp /etc/pki/entitlement/* /etc/pki/entitlement-out/ && cp -r /etc/rhsm/ca /etc/rhsm/rhsm.conf /etc/rhsm-out && /usr/sbin/subscription-manager unregister'
+        podman run --name="$NAME" -v "$EDIR":/etc/pki/entitlement-out:z -v "$CDIR":/etc/rhsm-out:z -e SMDEV_CONTAINER_OFF=1 --rm "${{ inputs.image }}" bash -c '/usr/sbin/subscription-manager register --org="${{ inputs.org }}" --activationkey="${{ inputs.activationkey }}" --name="'$NAME'" && cp /etc/pki/entitlement/* /etc/pki/entitlement-out/ && cp -r /etc/rhsm/ca /etc/rhsm/rhsm.conf /etc/rhsm-out && /usr/sbin/subscription-manager unregister'
         ( echo "$EDIR:/run/secrets/etc-pki-entitlement" ; echo "$CDIR:/run/secrets/rhsm" ) | sudo tee /etc/containers/mounts.conf
       shell: bash
