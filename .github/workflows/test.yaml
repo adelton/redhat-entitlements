@@ -5,14 +5,35 @@ on:
 jobs:
   build:
     name: Build container image
-    runs-on: ubuntu-20.04
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-20.04 ]
+        action-image: [ registry.access.redhat.com/ubi8, registry.access.redhat.com/ubi9, '' ]
+        use-image: [ registry.access.redhat.com/rhel7, registry.access.redhat.com/ubi8, registry.access.redhat.com/ubi8-minimal, registry.access.redhat.com/ubi9, registry.access.redhat.com/ubi9-minimal ]
+    env:
+        DNF: dnf
     steps:
       - uses: actions/checkout@v2
       - uses: ./.github/actions/podman-entitlement
         with:
           org: ${{ secrets.redhat_org }}
           activationkey: ${{ secrets.redhat_activationkey }}
-      - run: set -o pipefail ; podman run --rm registry.access.redhat.com/ubi9 dnf install -y zsh | tee podman-run.log
+          image: ${{ matrix.action-image }}
+        if: matrix.action-image != ''
+      - uses: ./.github/actions/podman-entitlement
+        with:
+          org: ${{ secrets.redhat_org }}
+          activationkey: ${{ secrets.redhat_activationkey }}
+        if: matrix.action-image == ''
+      - run: echo "DNF=yum" >> $GITHUB_ENV
+        if: contains( matrix.use-image, 'rhel7')
+      - run: echo "DNF=microdnf" >> $GITHUB_ENV
+        if: endsWith( matrix.use-image, '-minimal')
+      - run: set -o pipefail ; podman run --rm ${{ matrix.use-image }} $DNF install -y zsh | tee podman-run.log
+      - run: mkdir build ; ( echo "FROM ${{ matrix.use-image }}" ; echo "RUN $DNF install -y zsh" ) | tee build/Dockerfile
+      - run: podman build build | tee podman-build.log
       - uses: ./.github/actions/upload-artifact-encrypt
         with:
           name: podman-run.log
