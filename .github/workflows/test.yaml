@@ -12,6 +12,7 @@ jobs:
         os: [ ubuntu-20.04 ]
         build-image: [ registry.access.redhat.com/ubi8, registry.access.redhat.com/ubi9, '' ]
         use-image: [ registry.access.redhat.com/ubi8, registry.access.redhat.com/ubi8-minimal, registry.access.redhat.com/ubi9, registry.access.redhat.com/ubi9-minimal ]
+        podman: [ podman, docker ]
     env:
         DNF: dnf
     steps:
@@ -29,13 +30,13 @@ jobs:
         if: matrix.build-image == ''
       - run: echo "DNF=microdnf" >> $GITHUB_ENV
         if: endsWith( matrix.use-image, '-minimal')
-      - run: set -o pipefail ; podman run --rm ${{ matrix.use-image }} $DNF install -y zsh | tee podman-run.log
+      - run: set -o pipefail ; ${{ matrix.podman }} run --rm ${{ matrix.use-image }} $DNF install -y zsh | tee run.log
       - run: mkdir build ; ( echo "FROM ${{ matrix.use-image }}" ; echo "RUN $DNF install -y zsh" ) | tee build/Dockerfile
-      - run: podman build build | tee podman-build.log
+      - run: ${{ matrix.podman }} build build | tee build.log
       - uses: ./.github/actions/upload-artifact-encrypt
         with:
-          name: podman-run.log
-          path: podman-run.log
+          name: run.log
+          path: run.log
           secret: ${{ secrets.upload_secret }}
   check:
     name: Check the logs (that should have been encrypted)
@@ -45,6 +46,6 @@ jobs:
       - uses: actions/checkout@v2
       - uses: ./.github/actions/download-artifact-decrypt
         with:
-          name: podman-run.log
+          name: run.log
           secret: ${{ secrets.upload_secret }}
-      - run: cat podman-run.log
+      - run: cat run.log
