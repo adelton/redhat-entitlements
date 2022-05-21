@@ -16,13 +16,13 @@ jobs:
         DNF: dnf
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/actions/podman-entitlement
+      - uses: ./podman-entitlement
         with:
           org: ${{ secrets.redhat_org }}
           activationkey: ${{ secrets.redhat_activationkey }}
           image: ${{ matrix.action-image }}
         if: matrix.action-image != ''
-      - uses: ./.github/actions/podman-entitlement
+      - uses: ./podman-entitlement
         with:
           org: ${{ secrets.redhat_org }}
           activationkey: ${{ secrets.redhat_activationkey }}
@@ -34,7 +34,7 @@ jobs:
       - run: set -o pipefail ; podman run --rm ${{ matrix.use-image }} $DNF install -y zsh | tee podman-run.log
       - run: mkdir build ; ( echo "FROM ${{ matrix.use-image }}" ; echo "RUN $DNF install -y zsh" ) | tee build/Dockerfile
       - run: podman build build | tee podman-build.log
-      - uses: ./.github/actions/upload-artifact-encrypt
+      - uses: ./upload-artifact-encrypt
         with:
           name: podman-run.log
           path: podman-run.log
@@ -45,7 +45,7 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v2
-      - uses: ./.github/actions/download-artifact-decrypt
+      - uses: ./download-artifact-decrypt
         with:
           name: podman-run.log
           secret: ${{ secrets.upload_secret }}
