@@ -12,10 +12,11 @@ inputs:
 runs:
   using: 'composite'
   steps:
-    - run: |
-        echo "${{ inputs.secret }}" | openssl enc -pass stdin -aes-256-cbc -pbkdf2 -in "${{ inputs.path }}" -out "${{ inputs.path }}.enc.$$"
-        rm -f "${{ inputs.path }}"
-        mv -f "${{ inputs.path }}.enc.$$" "${{ inputs.path }}"
+    - run: echo "${{ inputs.secret }}" | openssl enc -pass stdin -aes-256-cbc -pbkdf2 -in "${{ inputs.path }}" -out "${{ inputs.path }}.enc.$$"
+      shell: bash
+    - run: rm -f "${{ inputs.path }}"
+      shell: bash
+    - run: mv -f "${{ inputs.path }}.enc.$$" "${{ inputs.path }}"
       shell: bash
     - uses: actions/upload-artifact@v2
       with:
