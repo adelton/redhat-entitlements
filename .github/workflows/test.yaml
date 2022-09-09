@@ -44,9 +44,16 @@ jobs:
     runs-on: ubuntu-latest
     needs: build
     steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: podman-run.log
+      - run: |
+          ! grep 'zsh.*\.el.\.x86_64' podman-run.log
+      - run: rm -f podman-run.log
       - uses: actions/checkout@v2
       - uses: ./download-artifact-decrypt
         with:
           name: podman-run.log
           secret: ${{ secrets.upload_secret }}
       - run: cat podman-run.log
+      - run: grep 'zsh.*\.el.\.x86_64' podman-run.log
