@@ -12,9 +12,9 @@ runs:
     - uses: actions/download-artifact@v2
       with:
         name: ${{ inputs.name }}
-    - run: |
-        set -e
-        echo "${{ inputs.secret }}" | openssl enc -d -pass stdin -aes-256-cbc -pbkdf2 -in "${{ inputs.name }}" -out "${{ inputs.name }}.dec.$$"
-        rm -f "${{ inputs.name }}"
-        mv -f "${{ inputs.name }}.dec.$$" "${{ inputs.name }}"
+    - run: echo "${{ inputs.secret }}" | openssl enc -d -pass stdin -aes-256-cbc -pbkdf2 -in "${{ inputs.name }}" -out "${{ inputs.name }}.dec.${{ github.run_id }}"
+      shell: bash
+    - run: rm -f "${{ inputs.name }}"
+      shell: bash
+    - run: mv -f "${{ inputs.name }}.dec.${{ github.run_id }}" "${{ inputs.name }}"
       shell: bash
