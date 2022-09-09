@@ -13,6 +13,8 @@ runs:
   using: 'composite'
   steps:
     - run: |
+        set -e
+        test -n "${{ inputs.secret }}"
         echo "${{ inputs.secret }}" | openssl enc -pass stdin -aes-256-cbc -pbkdf2 -in "${{ inputs.path }}" -out "${{ inputs.path }}.enc.$$"
         rm -f "${{ inputs.path }}"
         mv -f "${{ inputs.path }}.enc.$$" "${{ inputs.path }}"
