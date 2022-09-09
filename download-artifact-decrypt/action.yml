@@ -4,7 +4,7 @@ inputs:
     description: 'Artifact name'
     required: true
   secret:
-    description: 'The secret to be used to encrypt'
+    description: 'The secret that was used to encrypt'
     required: true
 runs:
   using: 'composite'
